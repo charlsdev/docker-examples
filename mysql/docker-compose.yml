@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+   mysqldb:
+      container_name: mysqldb
+      image: mysql
+      restart: always
+      environment:
+         MYSQL_DATABASE: 'db'
+         MYSQL_USER: 'dev'
+         MYSQL_PASSWORD: 'mypassdev81'
+         MYSQL_ROOT_PASSWORD: 'devchallenge81'
+      ports:
+         - '3306:3306'
+      volumes:
+         - my-db:/var/lib/mysql
+
+volumes:
+   my-db:
+      driver: local
