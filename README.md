@@ -9,7 +9,6 @@ docker-compose up
 # **Execute files docker 💻**
 
 ## **_SQL Server_** 📂
----
 
 Para ejecutar y generar la imagen de SQL Server deben de ingresar a la siguiente carpeta:
 
@@ -37,9 +36,7 @@ Username: SA
 Password: mypassdev85!
 ```
 
----
 ## **_MySQL_** 📂
----
 
 Para ejecutar y generar la imagen de MySQL deben de ingresar a la siguiente carpeta:
 
@@ -62,9 +59,7 @@ Finalmente ejecutan:
 docker-compose up
 ```
 
----
 ## **_MongoDB_** 📂
----
 
 Para ejecutar y generar la imagen de MongoDB deben de ingresar a la siguiente carpeta:
 
