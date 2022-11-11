@@ -1,0 +1,14 @@
+version: '3.8'                                        # Versión del Docker-Compose
+
+services:
+   mongodb:
+      container_name: mongodb                         # Nombre al contenedor
+      image: mongo                                    # Se puede indicar la version con :6.2
+      restart: always                                 # Por si falla se vuelva a iniciar
+      ports:
+         - 27017:27017                                # Inicamos el puerto pExterior:pDefecto
+      environment:
+         MONGO_INITDB_ROOT_USERNAME: "dev"            # Variable de entorno USER
+         MONGO_INITDB_ROOT_PASSWORD: "mypass458"      # Variable de entorno PASSWORD
+      logging:
+         driver: none                                 # Ocultar los logs en la consola
