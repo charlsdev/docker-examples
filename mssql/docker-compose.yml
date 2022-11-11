@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+   sqlserver:
+      build: ./docker
+      ports:
+         - 1433:1433
