@@ -2,7 +2,7 @@
 
 Para ejecutar las imagenes del docker compose ejecutamos el comando:
 
-```properties
+```bash
 docker-compose up
 ```
 
@@ -12,25 +12,25 @@ docker-compose up
 
 Para ejecutar y generar la imagen de SQL Server deben de ingresar a la siguiente carpeta:
 
-```bat
+```bash
 cd mssql
 ```
 
 Luego cambiar las credenciales de acceso como el user y password de los archivos **Dockerfile** y **initialization.sh**.
 
-```properties
+```bash
 SA_PASSWORD: mypass
 ```
 
 Finalmente ejecutan:
 
-```properties
+```bash
 docker-compose up
 ```
 
 Las credenciales de acceso a la base de datos es:
 
-```properties
+```bash
 host: 127.0.0.1
 Username: SA
 Password: mypassdev85!
@@ -40,13 +40,13 @@ Password: mypassdev85!
 
 Para ejecutar y generar la imagen de MySQL deben de ingresar a la siguiente carpeta:
 
-```bat
+```bash
 cd mysql
 ```
 
 Luego cambiar las credenciales de acceso como el user y password de los archivos **docker-compose.yml**.
 
-```properties
+```bash
 MYSQL_DATABASE: mydb
 MYSQL_USER: myuser
 MYSQL_PASSWORD: mypassuser
@@ -55,7 +55,7 @@ MYSQL_ROOT_PASSWORD: mypassroot
 
 Finalmente ejecutan:
 
-```properties
+```bash
 docker-compose up
 ```
 
@@ -63,20 +63,20 @@ docker-compose up
 
 Para ejecutar y generar la imagen de MongoDB deben de ingresar a la siguiente carpeta:
 
-```bat
+```bash
 cd mongo
 ```
 
 Luego cambiar las credenciales de acceso como el user y password de los archivos **docker-compose.yml**.
 
-```properties
+```bash
 MONGO_INITDB_ROOT_USERNAME: myuser
 MONGO_INITDB_ROOT_PASSWORD: mypass
 ```
 
 Finalmente ejecutan:
 
-```properties
+```bash
 docker-compose up
 ```
 
@@ -84,18 +84,18 @@ docker-compose up
 
 Para ejecutar y generar la imagen de MongoDB deben de ingresar a la siguiente carpeta:
 
-```bat
+```bash
 cd redis
 ```
 
 Luego cambiar las credenciales de acceso como el password del archivo **redis.conf**.
 
-```properties
+```bash
 requirepass dev123
 ```
 
 Finalmente ejecutan:
 
-```properties
+```bash
 docker-compose up
 ```
