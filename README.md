@@ -79,3 +79,23 @@ Finalmente ejecutan:
 ```properties
 docker-compose up
 ```
+
+## **_RedisDB_** 📂
+
+Para ejecutar y generar la imagen de MongoDB deben de ingresar a la siguiente carpeta:
+
+```bat
+cd redis
+```
+
+Luego cambiar las credenciales de acceso como el password del archivo **redis.conf**.
+
+```properties
+requirepass dev123
+```
+
+Finalmente ejecutan:
+
+```properties
+docker-compose up
+```
