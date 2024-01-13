@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE}
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+      DB_TYPE: ${DB_TYPE}
+      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
+      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
+      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
+      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
+      REDIS_ENABLED: ${REDIS_ENABLED}
+      REDIS_URL: ${REDIS_URL}
+      EXECUTIONS_MODE: ${MODE_N8N}
+      EXECUTIONS_PROCESS: ${PROCESS_N8N}
+    # depends_on:
+    #   - postgres
+    #   - redis
+    volumes:
+      - n8n_data:/root/.n8n
+    restart: always
+
+  n8n-worker:
+    image: n8nio/n8n
+    container_name: workers
+    environment:
+      DB_TYPE: ${DB_TYPE}
+      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
+      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
+      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
+      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
+      REDIS_ENABLED: ${REDIS_ENABLED}
+      REDIS_URL: ${REDIS_URL}
+      EXECUTIONS_MODE: ${MODE_WORKER}
+      EXECUTIONS_PROCESS: ${PROCESS_WORKER}
+      WEBHOOK_TUNNEL_URL: ${PATH_URL}
+    # depends_on:
+    #   - n8n
+    #   - postgres
+    #   - redis
+    restart: always
+
+  # postgres:
+  #   image: postgres
+  #   container_name: psql
+  #   environment:
+  #     - POSTGRES_DB: n8n
+  #     - POSTGRES_USER: n8n
+  #     - POSTGRES_PASSWORD: n8n-password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: always
+
+  # redis:
+  #   image: redis
+  #   container_name: redis
+  #   restart: always
+
+volumes:
+  n8n_data:
+    external: true
+  # postgres_data:
+  #   external: true
