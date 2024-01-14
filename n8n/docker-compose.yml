@@ -1,71 +1,84 @@
 version: '3.8'
 
-services:
-  n8n:
-    image: n8nio/n8n
-    container_name: n8n
-    ports:
-      - "5678:5678"
-    environment:
-      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE}
-      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
-      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
-      DB_TYPE: ${DB_TYPE}
-      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
-      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
-      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
-      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
-      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
-      REDIS_ENABLED: ${REDIS_ENABLED}
-      REDIS_URL: ${REDIS_URL}
-      EXECUTIONS_MODE: ${MODE_N8N}
-      EXECUTIONS_PROCESS: ${PROCESS_N8N}
-    # depends_on:
-    #   - postgres
-    #   - redis
-    volumes:
-      - n8n_data:/root/.n8n
-    restart: always
-
-  n8n-worker:
-    image: n8nio/n8n
-    container_name: workers
-    environment:
-      DB_TYPE: ${DB_TYPE}
-      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
-      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
-      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
-      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
-      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
-      REDIS_ENABLED: ${REDIS_ENABLED}
-      REDIS_URL: ${REDIS_URL}
-      EXECUTIONS_MODE: ${MODE_WORKER}
-      EXECUTIONS_PROCESS: ${PROCESS_WORKER}
-      WEBHOOK_TUNNEL_URL: ${PATH_URL}
-    # depends_on:
-    #   - n8n
-    #   - postgres
-    #   - redis
-    restart: always
-
-  # postgres:
-  #   image: postgres
-  #   container_name: psql
-  #   environment:
-  #     - POSTGRES_DB: n8n
-  #     - POSTGRES_USER: n8n
-  #     - POSTGRES_PASSWORD: n8n-password
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   restart: always
-
-  # redis:
-  #   image: redis
-  #   container_name: redis
-  #   restart: always
-
 volumes:
-  n8n_data:
-    external: true
-  # postgres_data:
-  #   external: true
+   db_storage:
+   n8n_storage:
+   redis_storage:
+
+
+x-shared: &shared
+   restart: always
+   image: docker.n8n.io/n8nio/n8n
+   environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
+   links:
+      - postgres
+      - redis
+   volumes:
+      - n8n_storage:/home/node/.n8n
+   depends_on:
+      redis:
+         condition: service_healthy
+      postgres:
+         condition: service_healthy
+
+services:
+   postgres:
+      image: postgres
+      container_name: postgres
+      ports:
+         - 5432:5432
+      restart: always
+      environment:
+         - POSTGRES_USER
+         - POSTGRES_PASSWORD
+         - POSTGRES_DB
+         - POSTGRES_NON_ROOT_USER
+         - POSTGRES_NON_ROOT_PASSWORD
+      volumes:
+         - db_storage:/var/lib/postgresql/data
+         # - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+      healthcheck:
+         test:
+            [
+               'CMD-SHELL',
+               'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}'
+            ]
+         interval: 5s
+         timeout: 5s
+         retries: 10
+
+   redis:
+      image: redis:6-alpine
+      container_name: redis
+      ports:
+         - 6379:6379
+      restart: always
+      volumes:
+         - redis_storage:/data
+      healthcheck:
+         test: [ 'CMD', 'redis-cli', 'ping' ]
+         interval: 5s
+         timeout: 5s
+         retries: 10
+
+   n8n:
+      <<: *shared
+      container_name: n8n
+      ports:
+         - 5678:5678
+
+   n8n-worker:
+      <<: *shared
+      container_name: workers
+      command: worker
+      depends_on:
+         - n8n
