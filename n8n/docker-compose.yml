@@ -19,6 +19,8 @@ x-shared: &shared
       - EXECUTIONS_MODE=queue
       - QUEUE_BULL_REDIS_HOST=redis
       - QUEUE_HEALTH_CHECK_ACTIVE=true
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - QUEUE_BULL_REDIS_PASSWORD=${REDIS_PASSWORD}
    links:
       - postgres
       - redis
@@ -64,8 +66,16 @@ services:
       restart: always
       volumes:
          - redis_storage:/data
+      command: redis-server --requirepass ${REDIS_PASSWORD}
       healthcheck:
-         test: [ 'CMD', 'redis-cli', 'ping' ]
+         test:
+            [
+               'CMD',
+               'redis-cli',
+               '-a',
+               '${REDIS_PASSWORD}',
+               'ping'
+            ]
          interval: 5s
          timeout: 5s
          retries: 10
