@@ -3,21 +3,34 @@ version: '3.8'
 services:
    mysqldb:
       container_name: mysqldb
-      image: mysql
-      command: --default-authentication-plugin=mysql_native_password
+      image: mysql:latest
+      # command: --default-authentication-plugin=mysql_native_password
       restart: always
       environment:
-         MYSQL_DATABASE: 'db'
-         MYSQL_USER: 'dev'
-         MYSQL_PASSWORD: 'mypassdev81'
-         MYSQL_ROOT_PASSWORD: 'devchallenge81'
+         MYSQL_DATABASE: ${MYSQL_DATABASE}
+         MYSQL_USER: ${MYSQL_USER}
+         MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+         MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       ports:
-         - '3306:3306'
+         - '${MYSQL_PORT_TCP}:3306'
       volumes:
          - my-db:/var/lib/mysql
+         - ${MYSQL_BACKUPS}:/backups
          - ./db/example.sql:/docker-entrypoint-initdb.d/example.sql
-      logging:
-         driver: none
+      # logging:
+      #    driver: none # Disable logging
+
+   backup:
+      build:
+         context: .
+         dockerfile: Dockerfile
+      environment:
+         MYSQL_USER: ${MYSQL_USER}
+         MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      volumes:
+         - ${MYSQL_BACKUPS}:/backups
+      depends_on:
+         - mysqldb
 
 volumes:
    my-db:
