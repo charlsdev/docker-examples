@@ -1,4 +1,5 @@
-name: librenms
+version: '3.8'
+# name: librenms
 
 services:
   db:
@@ -79,8 +80,8 @@ services:
       - NET_ADMIN
       - NET_RAW
     ports:
-      - target: 8000
-        published: 8000
+      - target: 8000 # Puerto interno del contenedor
+        published: 8000 # Puerto externo del host
         protocol: tcp
     # Hacemos que espere al init antes de arrancar
     depends_on:
