@@ -1,0 +1,5 @@
+# Todas las carpetas
+# Ignorar todas las carpetas excepto las especificadas
+db/*
+librenms/*
+redis-data/*

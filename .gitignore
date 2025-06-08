@@ -1,3 +1,7 @@
 **/.env
 backups/*
 **/local-files
+
+/**/redis-*
+/**/mariadb-*
+/**/librenms-*
