@@ -1,5 +1,4 @@
 version: '3.8'
-# name: librenms
 
 services:
   db:
@@ -10,7 +9,7 @@ services:
     command:
       - "mysqld"
       - "--innodb-file-per-table=1"
-      - "--lower-case-table-names=1"
+      - "--lower-case-table-names=0"
       - "--character-set-server=utf8mb4"
       - "--collation-server=utf8mb4_unicode_ci"
       - "--max_allowed_packet=64M"
@@ -19,12 +18,13 @@ services:
       - "./db:/var/lib/mysql"
     environment:
       - "TZ=${TZ}"
-      # - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
       - "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}"
       - "MYSQL_DATABASE=${MYSQL_DATABASE}"
       - "MYSQL_USER=${MYSQL_USER}"
       - "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
     restart: always
+    networks:
+      - librenms-net
 
   redis:
     image: redis:latest
@@ -43,6 +43,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - librenms-net
 
   msmtpd:
     image: crazymax/msmtpd:latest
@@ -50,27 +52,26 @@ services:
     env_file:
       - "./msmtpd.env"
     restart: always
+    networks:
+      - librenms-net
 
-  # Servicio “init” que sólo corre una vez
   librenms_init:
     image: librenms/librenms:latest
     container_name: librenms_init
-    # Montamos tu carpeta de datos para que persista el .env
     volumes:
       - ./librenms:/data
-    # Necesita conexión a DB/Redis para artisan
     depends_on:
       - db
       - redis
-    # Copiamos el .env.example, añadimos APP_KEY= si falta y generamos la key
     entrypoint: ["/bin/bash","-lc"]
     command: >
       "cp -n /opt/librenms/.env.example /data/.env &&
        grep -q '^APP_KEY=' /data/.env || echo 'APP_KEY=' >> /data/.env &&
        php artisan key:generate --ansi --no-interaction --env=/data/.env &&
        echo 'Init done.'"
-    # No reiniciar nunca; sólo queremos que salga 0 y siga el flujo
     restart: "no"
+    networks:
+      - librenms-net
 
   librenms:
     image: librenms/librenms:latest
@@ -80,15 +81,12 @@ services:
       - NET_ADMIN
       - NET_RAW
     ports:
-      - target: 8000 # Puerto interno del contenedor
-        published: 8000 # Puerto externo del host
-        protocol: tcp
-    # Hacemos que espere al init antes de arrancar
+      - "2025:8000"
     depends_on:
       db:
         condition: service_started
-      # redis:
-      #   condition: service_started
+      redis:
+        condition: service_healthy
       librenms_init:
         condition: service_completed_successfully
       msmtpd:
@@ -107,6 +105,8 @@ services:
       - "DB_PASSWORD=${MYSQL_PASSWORD}"
       - "DB_TIMEOUT=60"
     restart: always
+    networks:
+      - librenms-net
 
   dispatcher:
     image: librenms/librenms:latest
@@ -134,6 +134,8 @@ services:
       - "DISPATCHER_NODE_ID=dispatcher1"
       - "SIDECAR_DISPATCHER=1"
     restart: always
+    networks:
+      - librenms-net
 
   syslogng:
     image: librenms/librenms:latest
@@ -146,12 +148,8 @@ services:
       - librenms
       - redis
     ports:
-      - target: 514
-        published: 514
-        protocol: tcp
-      - target: 514
-        published: 514
-        protocol: udp
+      - "514:514/tcp"
+      - "514:514/udp"
     volumes:
       - "./librenms:/data"
     env_file:
@@ -167,6 +165,8 @@ services:
       - "DB_TIMEOUT=60"
       - "SIDECAR_SYSLOGNG=1"
     restart: always
+    networks:
+      - librenms-net
 
   snmptrapd:
     image: librenms/librenms:latest
@@ -179,12 +179,8 @@ services:
       - librenms
       - redis
     ports:
-      - target: 162
-        published: 162
-        protocol: tcp
-      - target: 162
-        published: 162
-        protocol: udp
+      - "162:162/tcp"
+      - "162:162/udp"
     volumes:
       - "./librenms:/data"
     env_file:
@@ -200,3 +196,9 @@ services:
       - "DB_TIMEOUT=60"
       - "SIDECAR_SNMPTRAPD=1"
     restart: always
+    networks:
+      - librenms-net
+
+networks:
+  librenms-net:
+    driver: bridge
